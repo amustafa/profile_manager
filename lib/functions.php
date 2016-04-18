@@ -19,27 +19,27 @@ function profile_manager_register_custom_field_types() {
 		'admin_only' => true,
 		'count_for_completeness' => true,
 	];
-		
+
 	$location_options = $profile_options;
 	unset($location_options['output_as_tags']);
-	
+
 	$dropdown_options = $profile_options;
 	$dropdown_options['blank_available'] = true;
-	
+
 	$radio_options = $profile_options;
 	$radio_options['blank_available'] = true;
-	
+
 	//$file_options = array(
 	//	'user_editable' => true,
 	//	'admin_only' => true
 	//);
-	
+
 	$pm_rating_options = $profile_options;
 	unset($pm_rating_options['output_as_tags']);
-	
+
 	$social_options = $profile_options;
 	$social_options['output_as_tags'] = false;
-	
+
 	profile_manager_add_custom_field_type('custom_profile_field_types', 'text', elgg_echo('profile:field:text'), $profile_options);
 	profile_manager_add_custom_field_type('custom_profile_field_types', 'longtext', elgg_echo('profile:field:longtext'), $profile_options);
 	profile_manager_add_custom_field_type('custom_profile_field_types', 'tags', elgg_echo('profile:field:tags'), $profile_options);
@@ -55,22 +55,32 @@ function profile_manager_register_custom_field_types() {
 	profile_manager_add_custom_field_type('custom_profile_field_types', 'pm_facebook', elgg_echo('profile_manager:admin:options:pm_facebook'), $social_options);
 	profile_manager_add_custom_field_type('custom_profile_field_types', 'pm_linkedin', elgg_echo('profile_manager:admin:options:pm_linkedin'), $social_options);
 	//profile_manager_add_custom_field_type('custom_profile_field_types', 'pm_file', elgg_echo('profile_manager:admin:options:file'), $file_options);
-	
+
+  //Extended Items
+  $extra_profile_fields =  elgg_trigger_plugin_hook("profile_manager:custom_field_register", "profile", array());
+
+  foreach ($extra_profile_fields as $extra_profile_field){
+    $field_type = $extra_profile_fields["type"];
+    $display_name = $extra_profile_fields["display_name"];
+    $field_options = $extra_profile_fields["options"];
+    profile_manager_add_custom_field_type('custom_profile_field_types', $field_type, $display_name, $field_options);
+  }
+
 	// registering group field types
 	$group_options = [
 		'output_as_tags' => true,
 		'admin_only' => true,
 	];
-	
+
 	$dropdown_options = $group_options;
 	$dropdown_options['blank_available'] = true;
-	
+
 	$radio_options = $group_options;
 	$radio_options['blank_available'] = true;
-	
+
 	$location_options = $group_options;
 	unset($location_options['output_as_tags']);
-	
+
 	profile_manager_add_custom_field_type('custom_group_field_types', 'text', elgg_echo('profile:field:text'), $group_options);
 	profile_manager_add_custom_field_type('custom_group_field_types', 'longtext', elgg_echo('profile:field:longtext'), $group_options);
 	profile_manager_add_custom_field_type('custom_group_field_types', 'tags', elgg_echo('profile:field:tags'), $group_options);
@@ -81,6 +91,17 @@ function profile_manager_register_custom_field_types() {
 	profile_manager_add_custom_field_type('custom_group_field_types', 'dropdown', elgg_echo('profile_manager:admin:options:dropdown'), $dropdown_options);
 	profile_manager_add_custom_field_type('custom_group_field_types', 'radio', elgg_echo('profile_manager:admin:options:radio'), $radio_options);
 	profile_manager_add_custom_field_type('custom_group_field_types', 'multiselect', elgg_echo('profile_manager:admin:options:multiselect'), $group_options);
+
+  //Extended Items
+  $extra_profile_fields =  elgg_trigger_plugin_hook("profile_manager:custom_field_register", "group", array());
+  foreach ($extra_profile_fields as $extra_profile_field){
+    $field_type = $extra_profile_fields["type"];
+    $display_name = $extra_profile_fields["display_name"];
+    $field_options = $extra_profile_fields["options"];
+    profile_manager_add_custom_field_type('custom_profile_field_types', $field_type, $display_name, $field_options);
+  }
+
+
 }
 
 /**
@@ -95,19 +116,19 @@ function profile_manager_register_custom_field_types() {
  */
 function profile_manager_add_custom_field_type($register_name, $field_type, $field_display_name, $options) {
 	global $PROFILE_MANAGER_FIELD_TYPES;
-	
+
 	if (!isset($PROFILE_MANAGER_FIELD_TYPES)) {
 		$PROFILE_MANAGER_FIELD_TYPES = array();
 	}
 	if (!isset($PROFILE_MANAGER_FIELD_TYPES[$register_name])) {
 		$PROFILE_MANAGER_FIELD_TYPES[$register_name] = array();
 	}
-	
+
 	$field_config = new stdClass();
 	$field_config->name = $field_display_name;
 	$field_config->type = $field_type;
 	$field_config->options = $options;
-	
+
 	$PROFILE_MANAGER_FIELD_TYPES[$register_name][$field_type] = $field_config;
 }
 
@@ -120,11 +141,11 @@ function profile_manager_add_custom_field_type($register_name, $field_type, $fie
  */
 function profile_manager_get_custom_field_types($register_name) {
 	global $PROFILE_MANAGER_FIELD_TYPES;
-	
+
 	if (isset($PROFILE_MANAGER_FIELD_TYPES) && isset($PROFILE_MANAGER_FIELD_TYPES[$register_name])) {
 		return $PROFILE_MANAGER_FIELD_TYPES[$register_name];
 	}
-	
+
 	return false;
 }
 
@@ -136,16 +157,16 @@ function profile_manager_get_custom_field_types($register_name) {
  * @return boolean
  */
 function profile_manager_add_profile_icon($user) {
-	
+
 	$icon_sizes = elgg_get_config('icon_sizes');
-	
+
 	// get the images and save their file handlers into an array
 	// so we can do clean up if one fails.
 	$files = [];
-	
+
 	foreach ($icon_sizes as $name => $size_info) {
 		$resized = get_resized_image_from_uploaded_file('profile_icon', $size_info['w'], $size_info['h'], $size_info['square'], $size_info['upscale']);
-	
+
 		if ($resized) {
 			$file = new ElggFile();
 			$file->owner_guid = $user->guid;
@@ -159,15 +180,15 @@ function profile_manager_add_profile_icon($user) {
 			foreach ($files as $file) {
 				$file->delete();
 			}
-	
+
 			register_error(elgg_echo('avatar:resize:fail'));
-			
+
 			return false;
 		}
 	}
-	
+
 	$user->icontime = time();
-	
+
 	return true;
 }
 
@@ -183,21 +204,21 @@ function profile_manager_add_profile_icon($user) {
  * @return unknown
  */
 function profile_manager_get_categorized_fields($user = null, $edit = false, $register = false, $profile_type_limit = false, $profile_type_guid = false) {
-	
+
 	$result = [];
 	$profile_type = null;
-	
+
 	if ($register == true) {
 		// failsafe for edit
 		$edit = true;
 	}
-	
+
 	if (!empty($user) && ($user instanceof ElggUser)) {
 		$profile_type_guid = $user->custom_profile_type;
-		
+
 		if (!empty($profile_type_guid)) {
 			$profile_type = get_entity($profile_type_guid);
-			
+
 			// check if profile type is a REAL profile type
 			if (!empty($profile_type) && ($profile_type instanceof \ColdTrick\ProfileManager\CustomProfileType)) {
 				if ($profile_type->getSubtype() != CUSTOM_PROFILE_FIELDS_PROFILE_TYPE_SUBTYPE) {
@@ -208,12 +229,12 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 	} elseif (!empty($profile_type_guid)) {
 		$profile_type = get_entity($profile_type_guid);
 	}
-	
+
 	$result['categories'] = [];
 	$result['categories'][0] = [];
 	$result['fields'] = [];
 	$ordered_cats = [];
-			
+
 	// get ordered categories
 	$cats = elgg_get_entities([
 		'type' => 'object',
@@ -228,17 +249,17 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 		}
 		ksort($ordered_cats);
 	}
-	
+
 	// get filtered categories
 	$filtered_ordered_cats = [];
 	// default category at index 0
 	$filtered_ordered_cats[0] = [];
-	
+
 	if (!empty($ordered_cats)) {
 		foreach ($ordered_cats as $key => $cat) {
-			
+
 			if (!$edit || $profile_type_limit) {
-				
+
 				$rel_count = elgg_get_entities_from_relationship([
 					'type' => 'object',
 					'subtype' => CUSTOM_PROFILE_FIELDS_PROFILE_TYPE_SUBTYPE,
@@ -249,7 +270,7 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 					'relationship_guid' => $cat->getGUID(),
 					'inverse_relationship' => true
 				]);
-				
+
 				if ($rel_count == 0) {
 					$filtered_ordered_cats[$cat->guid] = [];
 					$result['categories'][$cat->guid] = $cat;
@@ -263,7 +284,7 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 			}
 		}
 	}
-			
+
 	// adding fields to categories
 	$fields = elgg_get_entities([
 		'type' => 'object',
@@ -272,15 +293,15 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 		'owner_guid' => elgg_get_config('site_guid'),
 		'site_guid' => elgg_get_config('site_guid')
 	]);
-	
+
 	if ($fields) {
-		
+
 		foreach ($fields as $field) {
-			
+
 			if (!($cat_guid = $field->category_guid)) {
 				$cat_guid = 0; // 0 is default
 			}
-			
+
 			$admin_only = $field->admin_only;
 			if ($register || $admin_only != 'yes' || elgg_is_admin_logged_in()) {
 				if ($edit) {
@@ -291,7 +312,7 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 					// only add if value exists
 					$metadata_name = $field->metadata_name;
 					$user_value = $user->$metadata_name;
-					
+
 					if (!empty($user_value) || $user_value === 0) {
 						$filtered_ordered_cats[$cat_guid][$field->order] = $field;
 					}
@@ -299,7 +320,7 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 			}
 		}
 	}
-	
+
 	// sorting fields and filtering empty categories
 	foreach ($filtered_ordered_cats as $cat_guid => $fields) {
 		if (!empty($fields)) {
@@ -309,7 +330,7 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 			unset($result['categories'][$cat_guid]);
 		}
 	}
-	
+
 	//  fire hook to see if other plugins have extra fields
 	$hook_params = [
 		'user' => $user,
@@ -318,7 +339,7 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
 		'profile_type_limit' => $profile_type_limit,
 		'profile_type_guid' => $profile_type_guid
 	];
-	
+
 	return elgg_trigger_plugin_hook('categorized_profile_fields', 'profile_manager', $hook_params, $result);
 }
 
@@ -330,9 +351,9 @@ function profile_manager_get_categorized_fields($user = null, $edit = false, $re
  * @return array
  */
 function profile_manager_get_categorized_group_fields($group = null) {
-	
+
 	$result = ['fields' => []];
-	
+
 	// Get all custom group fields
 	$fields = elgg_get_entities([
 		'type' => 'object',
@@ -351,7 +372,7 @@ function profile_manager_get_categorized_group_fields($group = null) {
 		}
 		ksort($result['fields']);
 	}
-	
+
 	//  fire hook to see if other plugins have extra fields
 	return elgg_trigger_plugin_hook('categorized_group_fields', 'profile_manager', ['group' => $group], $result);
 }
@@ -364,11 +385,11 @@ function profile_manager_get_categorized_group_fields($group = null) {
  * @return boolean|int
  */
 function profile_manager_get_max_order($field_type) {
-	
+
 	if (!in_array($field_type, [CUSTOM_PROFILE_FIELDS_PROFILE_SUBTYPE, CUSTOM_PROFILE_FIELDS_GROUP_SUBTYPE])) {
 		return false;
 	}
-		
+
 	$entities = elgg_get_entities_from_metadata([
 		'type' => 'object',
 		'subtype' => $field_type,
@@ -377,12 +398,12 @@ function profile_manager_get_max_order($field_type) {
 		'owner_guid' => elgg_get_config('site_guid'),
 		'site_guid' => elgg_get_config('site_guid'),
 	]);
-	
+
 	if ($entities) {
 		$entity = $entities[0];
 		return (int) $entity->order;
 	}
-	
+
 	return 0;
 }
 
@@ -394,28 +415,28 @@ function profile_manager_get_max_order($field_type) {
  * @return boolean|array
  */
 function profile_manager_profile_completeness($user = null) {
-	
+
 	if (empty($user)) {
 		$user = elgg_get_logged_in_user_entity();
 	}
-	
+
 	if (!elgg_instanceof($user, 'user')) {
 		return false;
 	}
-		
+
 	$required_fields = [];
 	$missing_fields = [];
 	$percentage_completeness = 100;
-	
+
 	$fields = profile_manager_get_categorized_fields($user, true, false, true);
-	
+
 	if (!empty($fields['categories'])) {
-		
+
 		foreach ($fields['categories'] as $cat_guid => $cat) {
 			$cat_fields = $fields['fields'][$cat_guid];
-			
+
 			foreach ($cat_fields as $field) {
-				
+
 				if ($field->count_for_completeness == 'yes') {
 					$required_fields[] = $field;
 					$metaname = $field->metadata_name;
@@ -426,7 +447,7 @@ function profile_manager_profile_completeness($user = null) {
 			}
 		}
 	}
-	
+
 	if (count($required_fields) > 0) {
 		$percentage_completeness = 100 - round(((count($missing_fields) / count($required_fields)) * 100));
 	}
@@ -446,27 +467,27 @@ function profile_manager_profile_completeness($user = null) {
  * @return boolean|string
  */
 function profile_manager_generate_username_from_email($email) {
-	
+
 	if (empty($email) || !is_email_address($email)) {
 		return false;
 	}
-	
+
 	list($username) = explode('@', $email);
-	
+
 	// show hidden entities (unvalidated users)
 	$hidden = access_show_hidden_entities(true);
-	
+
 	// check if username is unique
 	$original_username = $username;
-	
+
 	$i = 1;
 	while (get_user_by_username($username)) {
 		$username = $original_username . $i;
 		$i++;
 	}
-	
+
 	// restore hidden entities
 	access_show_hidden_entities($hidden);
-	
+
 	return $username;
 }

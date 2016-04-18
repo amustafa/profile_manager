@@ -14,7 +14,6 @@ define('CUSTOM_PROFILE_FIELDS_CATEGORY_SUBTYPE', 'custom_profile_field_category'
 define('CUSTOM_PROFILE_FIELDS_PROFILE_TYPE_SUBTYPE', 'custom_profile_type');
 define('CUSTOM_PROFILE_FIELDS_PROFILE_SUBTYPE', 'custom_profile_field');
 define('CUSTOM_PROFILE_FIELDS_GROUP_SUBTYPE', 'custom_group_field');
-
 define('CUSTOM_PROFILE_FIELDS_PROFILE_TYPE_CATEGORY_RELATIONSHIP', 'custom_profile_type_category_relationship');
 
 /**
@@ -25,7 +24,7 @@ define('CUSTOM_PROFILE_FIELDS_PROFILE_TYPE_CATEGORY_RELATIONSHIP', 'custom_profi
 function profile_manager_init() {
 	// register libraries
 	elgg_register_js('jquery.ui.multiselect', 'mod/profile_manager/vendors/jquery_ui_multiselect/jquery.multiselect.js');
-	
+
 	// Extend CSS
 	elgg_extend_view('css/admin', 'css/profile_manager/global.css');
 	elgg_extend_view('css/admin', 'css/profile_manager/admin.css');
@@ -33,45 +32,45 @@ function profile_manager_init() {
 	elgg_extend_view('css/elgg', 'css/profile_manager/multiselect.css');
 	elgg_extend_view('css/elgg', 'css/profile_manager/global.css');
 	elgg_extend_view('css/elgg', 'css/profile_manager/site.css');
-	
+
 	// admin user add, registered here to overrule default action
 	elgg_register_action('useradd', dirname(__FILE__) . '/actions/useradd.php', 'admin');
-	
+
 	// Register all custom field types
 	profile_manager_register_custom_field_types();
-	
+
 	// add profile_completeness widget
 	if (elgg_get_plugin_setting('enable_profile_completeness_widget', 'profile_manager') == 'yes') {
 		elgg_register_widget_type('profile_completeness', elgg_echo('widgets:profile_completeness:title'), elgg_echo('widgets:profile_completeness:description'), ['profile', 'dashboard']);
 	}
-	
+
 	elgg_register_widget_type('register', elgg_echo('widgets:register:title'), elgg_echo('widgets:register:description'), ['index']);
-	
+
 	// free_text on register form
 	elgg_extend_view('register/extend_side', 'profile_manager/register/free_text');
-	
+
 	// where to put extra profile fields
 	elgg_extend_view('register/extend_side', 'profile_manager/register/fields');
 	elgg_extend_view('register/extend', 'profile_manager/register/fields');
-	
+
 	// login history
 	elgg_extend_view('core/settings/statistics', 'profile_manager/account/login_history');
-		
+
 	// extend public pages
 	elgg_register_plugin_hook_handler('public_pages', 'walled_garden', '\ColdTrick\ProfileManager\Sites::publicPages');
-	
+
 	// enable username change
 	elgg_extend_view('forms/account/settings', 'profile_manager/account/username', 50); // positioned at the beginning of the options
 
 	// register hook for saving the new username
 	elgg_register_plugin_hook_handler('usersettings:save', 'user', '\ColdTrick\ProfileManager\Users::usernameChange');
-	
+
 	elgg_register_plugin_hook_handler('view_vars', 'input/form', '\ColdTrick\ProfileManager\Users::registerViewVars');
-	
+
 	// site join event handler
 	elgg_register_event_handler('create', 'relationship', '\ColdTrick\ProfileManager\Sites::createMember');
 	elgg_register_event_handler('delete', 'relationship', '\ColdTrick\ProfileManager\Sites::deleteMember');
-	
+
 	// register ajax views
 	elgg_register_ajax_view('forms/profile_manager/type');
 	elgg_register_ajax_view('forms/profile_manager/category');
@@ -88,13 +87,13 @@ function profile_manager_pagesetup() {
 	if (!elgg_in_context('admin') || !elgg_is_admin_logged_in()) {
 		return;
 	}
-		
+
 	elgg_load_js('lightbox');
 	elgg_load_css('lightbox');
-	
+
 	elgg_register_admin_menu_item('administer', 'export', 'users');
 	elgg_register_admin_menu_item('administer', 'inactive', 'users');
-	
+
 	if (elgg_is_active_plugin('groups')) {
 		elgg_register_admin_menu_item('configure', 'group_fields', 'appearance');
 	}
@@ -112,7 +111,7 @@ function profile_manager_plugins_boot() {
 		'\ColdTrick\ProfileManager\CustomProfileType',
 		'\ColdTrick\ProfileManager\CustomFieldCategory',
 	];
-	
+
 	foreach ($classes as $class) {
 		$current_class = get_subtype_class('object', $class::SUBTYPE);
 		if ($current_class !== $class) {
@@ -162,4 +161,3 @@ elgg_register_action("profile_manager/profile_types/delete", dirname(__FILE__) .
 elgg_register_action("profile_manager/users/export_inactive", dirname(__FILE__) . "/actions/users/export_inactive.php", "admin");
 
 elgg_register_action("profile_manager/register/validate", dirname(__FILE__) . "/actions/register/validate.php", "public");
-	
