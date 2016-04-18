@@ -37,7 +37,7 @@ function profile_manager_init() {
 	elgg_register_action('useradd', dirname(__FILE__) . '/actions/useradd.php', 'admin');
 
 	// Register all custom field types
-	profile_manager_register_custom_field_types();
+//	profile_manager_register_custom_field_types();
 
 	// add profile_completeness widget
 	if (elgg_get_plugin_setting('enable_profile_completeness_widget', 'profile_manager') == 'yes') {

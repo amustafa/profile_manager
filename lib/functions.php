@@ -60,9 +60,9 @@ function profile_manager_register_custom_field_types() {
   $extra_profile_fields =  elgg_trigger_plugin_hook("profile_manager:custom_field_register", "profile", array());
 
   foreach ($extra_profile_fields as $extra_profile_field){
-    $field_type = $extra_profile_fields["type"];
-    $display_name = $extra_profile_fields["display_name"];
-    $field_options = $extra_profile_fields["options"];
+    $field_type = $extra_profile_field["type"];
+    $display_name = $extra_profile_field["display_name"];
+    $field_options = $extra_profile_field["options"];
     profile_manager_add_custom_field_type('custom_profile_field_types', $field_type, $display_name, $field_options);
   }
 
@@ -93,14 +93,13 @@ function profile_manager_register_custom_field_types() {
 	profile_manager_add_custom_field_type('custom_group_field_types', 'multiselect', elgg_echo('profile_manager:admin:options:multiselect'), $group_options);
 
   //Extended Items
-  $extra_profile_fields =  elgg_trigger_plugin_hook("profile_manager:custom_field_register", "group", array());
-  foreach ($extra_profile_fields as $extra_profile_field){
-    $field_type = $extra_profile_fields["type"];
-    $display_name = $extra_profile_fields["display_name"];
-    $field_options = $extra_profile_fields["options"];
+  $extra_group_fields =  elgg_trigger_plugin_hook("profile_manager:custom_field_register", "group", array());
+  foreach ($extra_group_fields as $extra_group_field){
+    $field_type = $extra_group_field["type"];
+    $display_name = $extra_group_field["display_name"];
+    $field_options = $extra_group_field["options"];
     profile_manager_add_custom_field_type('custom_profile_field_types', $field_type, $display_name, $field_options);
   }
-
 
 }
 
@@ -141,6 +140,10 @@ function profile_manager_add_custom_field_type($register_name, $field_type, $fie
  */
 function profile_manager_get_custom_field_types($register_name) {
 	global $PROFILE_MANAGER_FIELD_TYPES;
+
+  if (!isset($PROFILE_MANAGER_FIELD_TYPES)) {
+    profile_manager_register_custom_field_types();
+  }
 
 	if (isset($PROFILE_MANAGER_FIELD_TYPES) && isset($PROFILE_MANAGER_FIELD_TYPES[$register_name])) {
 		return $PROFILE_MANAGER_FIELD_TYPES[$register_name];
